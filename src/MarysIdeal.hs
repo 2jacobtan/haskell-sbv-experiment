@@ -6,6 +6,7 @@
 {-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns #-}
+{-# LANGUAGE RecordWildCards #-}
 
 module MarysIdeal where
 
@@ -45,7 +46,7 @@ getPerson Person{nm, tall, dark, handsome} =
 
 -- Mary's ideal man is tall, dark, and handsome.
 ideal :: Person SBV -> SBool
-ideal man = sAll ($ man) [tall, dark, handsome]
+ideal Person{..} = sAnd [tall, dark, handsome]
 
 
 puzzle :: Symbolic [Person Const]
@@ -67,7 +68,7 @@ puzzle = do
   constrain $ pbExactly (map handsome abcd) 1
 
   -- Each of the four men has at least one of the required traits.
-  let atLeastOneTrait man = pbAtLeast (map ($ man) [tall, dark, handsome]) 1
+  let atLeastOneTrait Person{..} = pbAtLeast [tall, dark, handsome] 1
   constrain $ sAll atLeastOneTrait abcd
   -- Alec and Bill have the same complexion.
   constrain $ dark alec .<=> dark bill
