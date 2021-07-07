@@ -3,16 +3,34 @@
 -- {-# LANGUAGE StandaloneDeriving #-}
 -- {-# LANGUAGE TemplateHaskell #-}
 
-{-# LANGUAGE ScopedTypeVariables #-}
 {-# LANGUAGE FlexibleInstances #-}
 {-# LANGUAGE NamedFieldPuns #-}
 {-# LANGUAGE RecordWildCards #-}
+{-# LANGUAGE StandaloneDeriving #-}
 
 module MarysIdeal where
 
 import Data.SBV
+    ( free,
+      runSMT,
+      runSMTWith,
+      (.&&),
+      (.<=>),
+      sAll,
+      sAnd,
+      sNot,
+      pbAtLeast,
+      pbExactly,
+      z3,
+      SBV,
+      SBool,
+      constrain,
+      SMTConfig(verbose, transcript),
+      Symbolic )
 import Data.SBV.Control (Query, getValue, CheckSatResult (Sat), query, checkSat)
 import Data.Functor (($>))
+import Text.Pretty.Simple ( pPrint )
+import Data.Functor.Identity ( Identity(Identity) )
 
 -- reference example
 -- https://hackage.haskell.org/package/sbv-8.15/docs/src/Documentation.SBV.Examples.Puzzles.Murder.html#Location
@@ -25,12 +43,10 @@ data Person f = Person
     handsome :: f Bool
   }
 
--- | Helper functor
-newtype Const a = Const { getConst :: a }
-
 -- | Show a person
-instance Show (Person Const) where
-  show (Person n t d h) = unwords [n, show (getConst t), show (getConst d), show (getConst h)]
+deriving instance Show (Person Identity)
+-- instance Show (Person Identity) where
+--   show (Person n t d h) = unwords $ n : map (show . runIdentity) [t, d, h]
 
 -- | Create a new symbolic person
 newPerson :: String -> Symbolic (Person SBV)
@@ -38,18 +54,18 @@ newPerson n =
   Person n <$> free (n ++ "Tall") <*> free (n ++ "Dark") <*> free (n ++ "Handsome")
 
 -- | Get the concrete value of the person in the model
-getPerson :: Person SBV -> Query (Person Const)
+getPerson :: Person SBV -> Query (Person Identity)
 getPerson Person{nm, tall, dark, handsome} =
-  Person nm <$> (Const <$> getValue tall)
-            <*> (Const <$> getValue dark)
-            <*> (Const <$> getValue handsome)
+  Person nm <$> (Identity <$> getValue tall)
+            <*> (Identity <$> getValue dark)
+            <*> (Identity <$> getValue handsome)
 
 -- Mary's ideal man is tall, dark, and handsome.
 ideal :: Person SBV -> SBool
 ideal Person{..} = sAnd [tall, dark, handsome]
 
 
-puzzle :: Symbolic [Person Const]
+puzzle :: Symbolic [Person Identity]
 puzzle = do
   -- She knows four men: Alec, Bill, Carl, and Dave.
   alec    <- newPerson "Alec"
@@ -87,7 +103,7 @@ puzzle = do
       _ -> error $ "Solver said: " ++ show cs
 
 main :: IO ()
-main = runSMT puzzle >>= print
+main = runSMT puzzle >>= pPrint
 
 mainVerbose :: IO ()
 mainVerbose = runSMTWith z3{verbose = True} puzzle >>= print
@@ -96,8 +112,32 @@ mainOutput :: IO ()
 mainOutput = runSMTWith z3{transcript = Just "marysIdeal_z3-generated.smtlib"} puzzle >>= print
 
 {-
-*MarysIdeal> main
-[Alec True False False,Bill True False False,Carl True True True,Dave False True False]
+*MarysIdeal PPrint> main
+[ Person
+    { nm = "Alec"
+    , tall = Identity True
+    , dark = Identity False
+    , handsome = Identity False
+    }
+, Person
+    { nm = "Bill"
+    , tall = Identity True
+    , dark = Identity False
+    , handsome = Identity False
+    }
+, Person
+    { nm = "Carl"
+    , tall = Identity True
+    , dark = Identity True
+    , handsome = Identity True
+    }
+, Person
+    { nm = "Dave"
+    , tall = Identity False
+    , dark = Identity True
+    , handsome = Identity False
+    }
+]
 -}
 
 --------------------------------
