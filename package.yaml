@@ -23,6 +23,7 @@ dependencies:
 - base >= 4.7 && < 5
 - sbv
 - pretty-simple
+- HList
 
 library:
   source-dirs: src

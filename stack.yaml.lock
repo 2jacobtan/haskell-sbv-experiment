@@ -18,6 +18,13 @@ packages:
       sha256: ca11e64003b53b2586cf0015038587e1dc85f96aed22cce7480ff76568402370
   original:
     hackage: libBF-0.6.2@sha256:7bffc0e4dbc9bd9e851ba5c29255b62fd2c288dbc9a401cd3761b740f013775e,1770
+- completed:
+    hackage: HList-0.5.0.0@sha256:7d7a0bee8d01a7e0e10bf96c5214a21bebae3ecfc02d14fc13bf75458b38ac43,7137
+    pantry-tree:
+      size: 5718
+      sha256: 2881dd9fe6ee24dad62ecd68be6d98e834823d21b659f4ff0de87475e33371f1
+  original:
+    hackage: HList-0.5.0.0@sha256:7d7a0bee8d01a7e0e10bf96c5214a21bebae3ecfc02d14fc13bf75458b38ac43,7137
 snapshots:
 - completed:
     size: 567679
