@@ -28,7 +28,6 @@ import Data.SBV
       SMTConfig(verbose, transcript),
       Symbolic )
 import Data.SBV.Control (Query, getValue, CheckSatResult (Sat), query, checkSat)
-import Data.Functor (($>))
 import Text.Pretty.Simple ( pPrint )
 import Data.Functor.Identity ( Identity(Identity) )
 

@@ -13,7 +13,6 @@ module GenerateWithFancyTypes where
 
 import Data.SBV ( free, sTrue, SBV, SBool, Symbolic )
 import Data.HList.CommonMain ( HList(..) )
-import Data.Kind (Type)
 
 pattern (:>) :: x -> HList xs -> HList (x ': xs)
 pattern h :> t = HCons h t
@@ -25,8 +24,28 @@ data G a where
   GBool :: String -> G Bool
 deriving instance Show (G a)
 
+data Types a where
+  TypesList :: Types [Int, String, Bool]
+
 raw :: HList [G Integer, G Bool, G Integer]
 raw = GInt "A : Int" :>  GBool "B : Bool" :> GInt "C : Int" :> HNil
+
+raw2 :: [String]
+raw2 = ["Int", "Bool"]
+
+class ParseRaw2 a where
+  parseRaw2 :: [String] -> HList a
+instance ParseRaw2 '[] where
+  parseRaw2 [] = HNil
+  parseRaw2 _ = error "bad parse"
+
+
+-- parseRaw2 :: Types [Int, String, Bool] -> String -> G a
+-- parseRaw2 _ = \case
+--   "Int" -> GInt "An Integer"
+--   "Bool" -> GBool "A Bool"
+--   "String" -> GString "A String"
+
 
 selection :: [Bool]
 selection = [True, False, True]
@@ -64,8 +83,8 @@ instance (GFilter xs, Show x, Show (HList xs)) => GFilter (x ': xs) where
       EHList l -> if b then EHList (HCons x l) else EHList l
 
 question :: GFilter a => HList a -> [Bool] -> Symbolic SBool
-question xs bs =
-  let relevant = gFilter xs
+question xs _bs =
+  let _relevant = gFilter xs
   in do
     return sTrue
 
